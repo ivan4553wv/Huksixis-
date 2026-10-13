@@ -1,0 +1,809 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+<meta name="theme-color" content="#000700">
+<title>Huksixis</title>
+<style>
+/* ============================================================
+   HUKSIXIS :: terminal green
+   ============================================================ */
+* { margin:0; padding:0; box-sizing:border-box; -webkit-tap-highlight-color:transparent; }
+
+html, body {
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  position: fixed;
+  background: #000700;
+  color: #00ff88;
+  font-family: 'Courier New', monospace;
+  font-size: 14px;
+  -webkit-font-smoothing: antialiased;
+}
+
+body::before {
+  content:'';
+  position:fixed; inset:0;
+  background:
+    repeating-linear-gradient(to bottom, rgba(0,255,136,0.025) 0, rgba(0,255,136,0.025) 1px, transparent 1px, transparent 3px);
+  pointer-events:none;
+  z-index:9998;
+  mix-blend-mode: screen;
+}
+
+#app {
+  width: 100%;
+  height: 100%;
+  height: 100dvh;
+  display: flex;
+  flex-direction: column;
+  max-width: 100%;
+  overflow: hidden;
+  position: relative;
+  z-index: 2;
+}
+
+.hidden { display: none !important; }
+
+/* ============ ЭКРАН ВХОДА ============ */
+.screen {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  background: #000700;
+  overflow: hidden;
+}
+
+#loginScreen {
+  padding: env(safe-area-inset-top, 20px) 20px env(safe-area-inset-bottom, 20px);
+  justify-content: center;
+  gap: 24px;
+  overflow-y: auto;
+}
+
+.logo {
+  text-align: center;
+  color: #00ff88;
+  text-shadow: 0 0 10px rgba(0,255,136,0.6);
+  animation: flicker 4s infinite;
+}
+
+.logo pre {
+  font-size: clamp(5px, 2.2vw, 9px);
+  line-height: 1.1;
+  letter-spacing: -0.5px;
+  white-space: pre;
+  overflow: hidden;
+}
+
+@keyframes flicker {
+  0%,92%,100% { opacity:1; }
+  93% { opacity:0.55; }
+  94% { opacity:1; }
+  96% { opacity:0.8; }
+  97% { opacity:1; }
+}
+
+.tagline {
+  text-align: center;
+  font-size: 11px;
+  letter-spacing: 3px;
+  color: #00b35e;
+  margin-top: 6px;
+}
+
+.tabs {
+  display: flex;
+  border: 1px solid #0a3d1e;
+  border-radius: 4px;
+  overflow: hidden;
+}
+
+.tab {
+  flex: 1;
+  padding: 12px;
+  background: transparent;
+  color: #4d9968;
+  border: none;
+  font-family: inherit;
+  font-size: 12px;
+  letter-spacing: 2px;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+
+.tab.active {
+  background: rgba(0,255,136,0.1);
+  color: #00ff88;
+  text-shadow: 0 0 8px rgba(0,255,136,0.5);
+}
+
+.form { display:flex; flex-direction:column; gap:14px; }
+
+.field { display:flex; flex-direction:column; gap:6px; }
+
+.field label {
+  font-size: 10px;
+  letter-spacing: 2px;
+  color: #00b35e;
+}
+
+.field input {
+  width: 100%;
+  background: #051a08;
+  border: 1px solid #0a3d1e;
+  color: #00ff88;
+  font-family: inherit;
+  font-size: 16px; /* важно: >=16px чтобы мобилка не зумила */
+  padding: 14px;
+  border-radius: 4px;
+  outline: none;
+  transition: all 0.15s;
+}
+
+.field input:focus {
+  border-color: #00ff88;
+  box-shadow: 0 0 0 2px rgba(0,255,136,0.15), 0 0 20px rgba(0,255,136,0.3);
+}
+
+.field input::placeholder { color:#4d9968; opacity:0.5; }
+
+.btn {
+  padding: 15px;
+  background: transparent;
+  border: 1px solid #00ff88;
+  color: #00ff88;
+  font-family: inherit;
+  font-weight: bold;
+  font-size: 13px;
+  letter-spacing: 3px;
+  cursor: pointer;
+  border-radius: 4px;
+  transition: all 0.15s;
+  text-shadow: 0 0 8px rgba(0,255,136,0.4);
+  width: 100%;
+}
+
+.btn:hover, .btn:active {
+  background: #00ff88;
+  color: #000700;
+  text-shadow: none;
+  box-shadow: 0 0 25px rgba(0,255,136,0.5);
+}
+
+.btn:disabled { opacity:0.4; }
+
+.hint {
+  min-height: 16px;
+  font-size: 11px;
+  color: #ff3355;
+  text-align: center;
+  letter-spacing: 1px;
+}
+
+/* ============ ЧАТ ============ */
+#chatScreen { display:flex; flex-direction:column; }
+
+.header {
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: calc(env(safe-area-inset-top, 8px) + 10px) 14px 10px;
+  background: #051a08;
+  border-bottom: 1px solid #0a3d1e;
+}
+
+.header .left, .header .right {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+}
+
+.dot {
+  width: 8px; height: 8px;
+  border-radius: 50%;
+  background: #ff3355;
+  box-shadow: 0 0 8px #ff3355;
+  flex-shrink: 0;
+  transition: all 0.3s;
+}
+
+.dot.on {
+  background: #00ff88;
+  box-shadow: 0 0 10px #00ff88, 0 0 20px rgba(0,255,136,0.5);
+  animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+  0%,100% { opacity:1; }
+  50% { opacity:0.5; }
+}
+
+.channel-name {
+  font-size: 13px;
+  color: #00b35e;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  max-width: 40vw;
+}
+
+.channel-name b { color:#00ff88; }
+
+.peers {
+  font-size: 10px;
+  color: #4d9968;
+  letter-spacing: 1px;
+  white-space: nowrap;
+}
+
+.leave {
+  background: transparent;
+  border: 1px solid #0a3d1e;
+  color: #4d9968;
+  width: 34px;
+  height: 34px;
+  border-radius: 4px;
+  cursor: pointer;
+  font-family: inherit;
+  font-size: 15px;
+  flex-shrink: 0;
+}
+
+.leave:active {
+  border-color: #ff3355;
+  color: #ff3355;
+}
+
+.crypto-bar {
+  flex-shrink: 0;
+  padding: 5px 14px;
+  font-size: 10px;
+  color: #00b35e;
+  background: rgba(0,255,136,0.03);
+  border-bottom: 1px solid #0a3d1e;
+  text-align: center;
+  letter-spacing: 0.5px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.messages {
+  flex: 1;
+  overflow-y: auto;
+  overflow-x: hidden;
+  padding: 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  -webkit-overflow-scrolling: touch;
+  overscroll-behavior: contain;
+}
+
+.sys {
+  align-self: center;
+  color: #4d9968;
+  font-size: 10px;
+  letter-spacing: 1px;
+  padding: 4px 12px;
+  border: 1px dashed #0a3d1e;
+  border-radius: 20px;
+  text-align: center;
+  max-width: 90%;
+  animation: fade 0.3s;
+}
+
+.msg {
+  max-width: 82%;
+  padding: 8px 12px;
+  border-radius: 6px;
+  font-size: 14px;
+  line-height: 1.45;
+  word-wrap: break-word;
+  overflow-wrap: anywhere;
+  white-space: pre-wrap;
+  animation: fade 0.2s ease;
+  position: relative;
+}
+
+@keyframes fade {
+  from { opacity:0; transform: translateY(4px); }
+  to   { opacity:1; transform: translateY(0); }
+}
+
+.msg .nick {
+  font-size: 10px;
+  letter-spacing: 1px;
+  margin-bottom: 3px;
+  display: block;
+  color: #00b35e;
+}
+
+.msg .time {
+  font-size: 9px;
+  opacity: 0.45;
+  margin-top: 4px;
+  display: block;
+  text-align: right;
+}
+
+.msg.me {
+  align-self: flex-end;
+  background: rgba(0,255,136,0.08);
+  border: 1px solid #00b35e;
+  color: #00ff88;
+  border-bottom-right-radius: 2px;
+}
+
+.msg.me .nick { color:#00ff88; text-align: right; }
+
+.msg.other {
+  align-self: flex-start;
+  background: rgba(0,255,136,0.02);
+  border: 1px solid #0a3d1e;
+  color: #b8ffd0;
+  border-bottom-left-radius: 2px;
+}
+
+.input-area {
+  flex-shrink: 0;
+  display: flex;
+  gap: 8px;
+  padding: 10px 12px calc(env(safe-area-inset-bottom, 8px) + 10px);
+  background: #051a08;
+  border-top: 1px solid #0a3d1e;
+}
+
+#msgInput {
+  flex: 1;
+  min-width: 0;
+  background: #000700;
+  border: 1px solid #0a3d1e;
+  color: #00ff88;
+  font-family: inherit;
+  font-size: 16px;
+  padding: 12px 14px;
+  border-radius: 4px;
+  outline: none;
+}
+
+#msgInput:focus {
+  border-color: #00ff88;
+  box-shadow: 0 0 0 2px rgba(0,255,136,0.1);
+}
+
+#sendBtn {
+  width: 48px;
+  background: transparent;
+  border: 1px solid #00ff88;
+  color: #00ff88;
+  border-radius: 4px;
+  font-size: 16px;
+  cursor: pointer;
+  flex-shrink: 0;
+}
+
+#sendBtn:active {
+  background: #00ff88;
+  color: #000700;
+  box-shadow: 0 0 20px rgba(0,255,136,0.5);
+}
+</style>
+</head>
+<body>
+<div id="app">
+
+  <!-- ============ ВХОД ============ -->
+  <section class="screen" id="loginScreen">
+    <div class="logo">
+      <pre>
+ ██╗  ██╗██╗   ██╗██╗  ██╗███████╗██╗██╗  ██╗██╗███████╗
+ ██║  ██║██║   ██║██║ ██╔╝██╔════╝██║╚██╗██╔╝██║██╔════╝
+ ███████║██║   ██║█████╔╝ ███████╗██║ ╚███╔╝ ██║███████╗
+ ██╔══██║██║   ██║██╔═██╗ ╚════██║██║ ██╔██╗ ██║╚════██║
+ ██║  ██║╚██████╔╝██║  ██╗███████║██║██╔╝ ██╗██║███████║
+ ╚═╝  ╚═╝ ╚═════╝ ╚═╝  ╚═╝╚══════╝╚═╝╚═╝  ╚═╝╚═╝╚══════╝
+      </pre>
+      <div class="tagline">// encrypted relay v2.0</div>
+    </div>
+
+    <div class="tabs">
+      <button class="tab active" id="tabJoin">ВОЙТИ</button>
+      <button class="tab" id="tabCreate">СОЗДАТЬ</button>
+    </div>
+
+    <div class="form">
+      <div class="field">
+        <label>ПОЗЫВНОЙ</label>
+        <input type="text" id="nick" placeholder="ghost_01" maxlength="20" autocomplete="off" autocapitalize="off">
+      </div>
+
+      <div class="field">
+        <label>НАЗВАНИЕ КАНАЛА</label>
+        <input type="text" id="chName" placeholder="secret-room" maxlength="32" autocomplete="off" autocapitalize="off">
+      </div>
+
+      <div class="field">
+        <label>ПАРОЛЬ</label>
+        <input type="password" id="chPass" placeholder="••••••••" maxlength="32" autocomplete="off">
+      </div>
+
+      <button class="btn" id="connectBtn">ВОЙТИ В КАНАЛ →</button>
+      <div class="hint" id="loginHint"></div>
+    </div>
+  </section>
+
+  <!-- ============ ЧАТ ============ -->
+  <section class="screen hidden" id="chatScreen">
+    <div class="header">
+      <div class="left">
+        <span class="dot" id="statusDot"></span>
+        <span class="channel-name">#<b id="roomName">—</b></span>
+      </div>
+      <div class="right">
+        <span class="peers" id="peerCount">1</span>
+        <button class="leave" id="leaveBtn">⏻</button>
+      </div>
+    </div>
+
+    <div class="crypto-bar" id="cryptoStatus">⟳ подключение…</div>
+
+    <div class="messages" id="messages"></div>
+
+    <form class="input-area" id="msgForm" autocomplete="off">
+      <input type="text" id="msgInput" placeholder="> сообщение…" maxlength="2000" autocomplete="off">
+      <button type="submit" id="sendBtn">▶</button>
+    </form>
+  </section>
+
+</div>
+
+<script>
+/* ============================================================
+   HUKSIXIS v2.0 — клиент
+   ============================================================ */
+
+// ⚠ ВАЖНО: если APK — укажи здесь адрес своего сервера.
+// Например: const SERVER = 'ws://192.168.1.100:3000';
+// Если пусто — берётся из текущего домена (для браузера).
+const SERVER = '';
+
+const $ = id => document.getElementById(id);
+
+const state = {
+  nick: '',
+  channel: '',
+  password: '',
+  mode: 'join',      // 'join' | 'create'
+  ws: null,
+  keyPair: null,
+  myPubB64: '',
+  sharedKey: null,
+  peerPubs: new Map(),
+  connected: false
+};
+
+// ============ UI refs ============
+const loginScreen = $('loginScreen');
+const chatScreen  = $('chatScreen');
+const nickEl      = $('nick');
+const chNameEl    = $('chName');
+const chPassEl    = $('chPass');
+const connectBtn  = $('connectBtn');
+const loginHint   = $('loginHint');
+const tabJoin     = $('tabJoin');
+const tabCreate   = $('tabCreate');
+const messagesEl  = $('messages');
+const msgForm     = $('msgForm');
+const msgInput    = $('msgInput');
+const leaveBtn    = $('leaveBtn');
+const roomNameEl  = $('roomName');
+const peerCountEl = $('peerCount');
+const statusDot   = $('statusDot');
+const cryptoStat  = $('cryptoStatus');
+
+// ============ Утилиты ============
+const timeNow = () =>
+  new Date().toLocaleTimeString('ru-RU', { hour:'2-digit', minute:'2-digit' });
+
+function esc(s) {
+  const d = document.createElement('div');
+  d.textContent = s;
+  return d.innerHTML;
+}
+
+function showHint(t) {
+  loginHint.textContent = t;
+  clearTimeout(showHint._t);
+  showHint._t = setTimeout(() => loginHint.textContent = '', 3500);
+}
+
+function scrollBottom() {
+  requestAnimationFrame(() => messagesEl.scrollTop = messagesEl.scrollHeight);
+}
+
+function addSystem(text) {
+  const el = document.createElement('div');
+  el.className = 'sys';
+  el.textContent = text;
+  messagesEl.appendChild(el);
+  scrollBottom();
+}
+
+function addMessage(text, side, nick) {
+  const el = document.createElement('div');
+  el.className = 'msg ' + side;
+  const nickHtml = side === 'other' && nick
+    ? `<span class="nick">${esc(nick)}</span>` : '';
+  el.innerHTML = `${nickHtml}${esc(text)}<span class="time">${timeNow()}</span>`;
+  messagesEl.appendChild(el);
+  scrollBottom();
+}
+
+// ============ E2E CRYPTO ============
+const C = {
+  async genKeys() {
+    return crypto.subtle.generateKey(
+      { name:'ECDH', namedCurve:'P-256' },
+      true, ['deriveKey','deriveBits']
+    );
+  },
+  async exportPub(key) {
+    const raw = await crypto.subtle.exportKey('raw', key);
+    return C.b64(raw);
+  },
+  async importPub(b64) {
+    return crypto.subtle.importKey(
+      'raw', C.unb64(b64),
+      { name:'ECDH', namedCurve:'P-256' },
+      true, []
+    );
+  },
+  async derive(myPriv, theirPub) {
+    return crypto.subtle.deriveKey(
+      { name:'ECDH', public: theirPub },
+      myPriv,
+      { name:'AES-GCM', length:256 },
+      false, ['encrypt','decrypt']
+    );
+  },
+  async encrypt(key, text) {
+    const iv = crypto.getRandomValues(new Uint8Array(12));
+    const data = new TextEncoder().encode(text);
+    const cipher = await crypto.subtle.encrypt({ name:'AES-GCM', iv }, key, data);
+    const out = new Uint8Array(iv.length + cipher.byteLength);
+    out.set(iv, 0);
+    out.set(new Uint8Array(cipher), iv.length);
+    return C.b64(out);
+  },
+  async decrypt(key, b64) {
+    try {
+      const buf = C.unb64(b64);
+      const iv = buf.slice(0, 12);
+      const cipher = buf.slice(12);
+      const plain = await crypto.subtle.decrypt({ name:'AES-GCM', iv }, key, cipher);
+      return new TextDecoder().decode(plain);
+    } catch { return null; }
+  },
+  async fp(b64) {
+    const buf = await crypto.subtle.digest('SHA-256', C.unb64(b64));
+    return Array.from(new Uint8Array(buf).slice(0, 6))
+      .map(b => b.toString(16).padStart(2,'0')).join('').toUpperCase();
+  },
+  b64(bytes) {
+    let s = '';
+    const arr = new Uint8Array(bytes);
+    for (let i = 0; i < arr.length; i++) s += String.fromCharCode(arr[i]);
+    return btoa(s);
+  },
+  unb64(str) {
+    const bin = atob(str);
+    const out = new Uint8Array(bin.length);
+    for (let i = 0; i < bin.length; i++) out[i] = bin.charCodeAt(i);
+    return out;
+  }
+};
+
+// ============ ВКЛАДКИ ============
+tabJoin.onclick = () => {
+  state.mode = 'join';
+  tabJoin.classList.add('active');
+  tabCreate.classList.remove('active');
+  connectBtn.textContent = 'ВОЙТИ В КАНАЛ →';
+};
+
+tabCreate.onclick = () => {
+  state.mode = 'create';
+  tabCreate.classList.add('active');
+  tabJoin.classList.remove('active');
+  connectBtn.textContent = 'СОЗДАТЬ КАНАЛ +';
+};
+
+// ============ ПОДКЛЮЧЕНИЕ ============
+connectBtn.onclick = async () => {
+  const nick = nickEl.value.trim();
+  const name = chNameEl.value.trim();
+  const pass = chPassEl.value.trim();
+
+  if (nick.length < 2) return showHint('Позывной от 2 символов');
+  if (name.length < 2) return showHint('Название канала от 2 символов');
+  if (pass.length < 3) return showHint('Пароль от 3 символов');
+
+  state.nick = nick;
+  state.channel = name;
+  state.password = pass;
+
+  connectBtn.disabled = true;
+  connectBtn.textContent = '⟳ СОЕДИНЕНИЕ…';
+
+  try {
+    // ECDH-ключи
+    state.keyPair = await C.genKeys();
+    state.myPubB64 = await C.exportPub(state.keyPair.publicKey);
+    const fp = await C.fp(state.myPubB64);
+    cryptoStat.textContent = `⟳ ключ ${fp} · подключение к серверу…`;
+
+    // WebSocket
+    const url = SERVER || ((location.protocol === 'https:' ? 'wss://' : 'ws://') + location.host);
+    const ws = new WebSocket(url);
+    state.ws = ws;
+
+    ws.onopen = () => {
+      ws.send(JSON.stringify({
+        type: state.mode,
+        name: state.channel,
+        password: state.password,
+        nick: state.nick
+      }));
+    };
+
+    ws.onmessage = async (ev) => {
+      let msg;
+      try { msg = JSON.parse(ev.data); } catch { return; }
+      await handleServerMessage(msg);
+    };
+
+    ws.onerror = () => {
+      showHint('Ошибка подключения к серверу');
+      connectBtn.disabled = false;
+      connectBtn.textContent = state.mode === 'create' ? 'СОЗДАТЬ КАНАЛ +' : 'ВОЙТИ В КАНАЛ →';
+    };
+
+    ws.onclose = () => {
+      if (state.connected) {
+        addSystem('— соединение разорвано —');
+        statusDot.classList.remove('on');
+      }
+    };
+
+  } catch (e) {
+    showHint('Ошибка: ' + e.message);
+    connectBtn.disabled = false;
+    connectBtn.textContent = state.mode === 'create' ? 'СОЗДАТЬ КАНАЛ +' : 'ВОЙТИ В КАНАЛ →';
+  }
+};
+
+// ============ ОБРАБОТКА СООБЩЕНИЙ ОТ СЕРВЕРА ============
+async function handleServerMessage(msg) {
+
+  if (msg.type === 'error') {
+    showHint(msg.text || 'Ошибка');
+    connectBtn.disabled = false;
+    connectBtn.textContent = state.mode === 'create' ? 'СОЗДАТЬ КАНАЛ +' : 'ВОЙТИ В КАНАЛ →';
+    try { state.ws.close(); } catch {}
+    return;
+  }
+
+  if (msg.type === 'joined') {
+    state.connected = true;
+    loginScreen.classList.add('hidden');
+    chatScreen.classList.remove('hidden');
+    roomNameEl.textContent = msg.name;
+    statusDot.classList.add('on');
+    peerCountEl.textContent = msg.count;
+
+    addSystem(`вы вошли как "${state.nick}" в #${msg.name}`);
+
+    // рассылаем свой публичный ключ
+    wsSend({ type:'key', nick: state.nick, pub: state.myPubB64 });
+
+    const fp = await C.fp(state.myPubB64);
+    cryptoStat.textContent = `✓ ECDH · отпечаток: ${fp}`;
+
+    msgInput.focus();
+    return;
+  }
+
+  if (msg.type === 'peer-joined') {
+    peerCountEl.textContent = msg.count;
+    addSystem(`${msg.nick} присоединился (${msg.count} online)`);
+    // шлём свой ключ новичку
+    wsSend({ type:'key', nick: state.nick, pub: state.myPubB64 });
+    return;
+  }
+
+  if (msg.type === 'peer-left') {
+    peerCountEl.textContent = msg.count;
+    addSystem(`${msg.nick || 'кто-то'} вышел (${msg.count} online)`);
+    return;
+  }
+
+  if (msg.type === 'key') {
+    if (!msg.pub || msg.pub === state.myPubB64) return;
+    const theirPub = await C.importPub(msg.pub);
+    state.peerPubs.set(msg.nick, msg.pub);
+    state.sharedKey = await C.derive(state.keyPair.privateKey, theirPub);
+
+    const fp = await C.fp(msg.pub);
+    addSystem(`🔑 E2E установлено с "${msg.nick}" · ${fp}`);
+    cryptoStat.textContent = `✓ E2E · ${msg.nick}: ${fp}`;
+    return;
+  }
+
+  if (msg.type === 'msg') {
+    if (!state.sharedKey) return;
+    const plain = await C.decrypt(state.sharedKey, msg.data);
+    if (plain === null) {
+      addSystem('⚠ не удалось расшифровать');
+      return;
+    }
+    addMessage(plain, 'other', msg.nick);
+    return;
+  }
+
+  if (msg.type === 'history') {
+    if (!state.sharedKey) return;
+    for (const m of msg.messages) {
+      const plain = await C.decrypt(state.sharedKey, m.data);
+      if (plain !== null) addMessage(plain, 'other', m.nick);
+    }
+    return;
+  }
+}
+
+function wsSend(obj) {
+  if (state.ws && state.ws.readyState === WebSocket.OPEN) {
+    state.ws.send(JSON.stringify(obj));
+  }
+}
+
+// ============ ОТПРАВКА ============
+msgForm.onsubmit = async (e) => {
+  e.preventDefault();
+  const text = msgInput.value.trim();
+  if (!text) return;
+
+  if (!state.sharedKey) {
+    addSystem('⚠ ждём собеседника (ключ ещё не установлен)');
+    return;
+  }
+
+  const encrypted = await C.encrypt(state.sharedKey, text);
+  wsSend({ type:'msg', nick: state.nick, data: encrypted });
+  addMessage(text, 'me');
+  msgInput.value = '';
+  msgInput.focus();
+};
+
+// ============ ВЫХОД ============
+leaveBtn.onclick = () => {
+  if (confirm('Выйти из канала?')) location.reload();
+};
+
+// ============ АВТОФОКУС ============
+nickEl.focus();
+chPassEl.addEventListener('keydown', e => {
+  if (e.key === 'Enter') connectBtn.click();
+});
+
+// Защита от двойного тапа-зума на iOS
+document.addEventListener('gesturestart', e => e.preventDefault());
+</script>
+</body>
+          </html>
